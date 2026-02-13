@@ -36,7 +36,6 @@ model = ModelM()
 model.load_state_dict(torch.load('model_fl.pth' , map_location=device))
 model.to(device)
 model.eval()
-flowers_app = FastAPI()
 classes = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
 st.title('Check Flowers')
 flower = st.file_uploader('Выберите изображение ' ,type = ['jpg' , 'png' , 'jpeg'])
