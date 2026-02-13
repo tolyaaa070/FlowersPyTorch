@@ -38,25 +38,23 @@ model.to(device)
 model.eval()
 flowers_app = FastAPI()
 classes = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
+st.title('Check Flowers')
+flower = st.file_uploader('Выберите изображение ' ,type = ['jpg' , 'png' , 'jpeg'])
+if not flower:
+    st.warning('Загрузите изображение')
+else:
+    st.image(flower, caption='Загруженное изображение')
 
-@flowers_app.post('/predict')
-async def check_flowers(file : UploadFile = File(...)):
-    try:
-        data = await file.read()
-        if not data:
-            raise HTTPException(status_code=404 , detail='File not found')
-        img_open = Image.open(io.BytesIO(data))
-        img_ten = transform_data(img_open).unsqueeze(0).to(device)
+    if st.button('Определить'):
+        try:
+            data = flower.read()
+            img_open = Image.open(io.BytesIO(data))
+            img_ten = transform_data(img_open).unsqueeze(0).to(device)
+            with torch.no_grad():
+                y_pred = model(img_ten)
+                pred = y_pred.argmax(dim=1).item()
+            st.success(f'Модель думает,что это изображение {classes[pred]}')
 
-        with torch.no_grad():
-            y_pred = model(img_ten)
-            pred =y_pred.argmax(dim =1).item()
-            return {'answer' : classes[pred]}
+        except Exception as e:
+            st.exception(f'Error{str(e)}')
 
-    except Exception as e:
-        raise HTTPException(status_code=500 , detail=str(e))
-
-
-
-if __name__ == '__main__':
-    uvicorn.run(flowers_app , port = 8000 , host = '127.0.0.1')
